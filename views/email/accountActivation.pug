@@ -1,0 +1,10 @@
+extends baseEmail
+
+block content
+    h1 Hello #{firstName},
+    p Welcome to our platform! 🎉
+    p Your account has been created successfully.
+    p Please click the link below to activate your account:
+    p
+      a(href=url, target="_blank", style="color: #1a73e8; text-decoration: underline;") Activate Your Account
+    p If you didn’t request this email, please ignore it.

@@ -1,0 +1,15 @@
+extends baseEmail
+
+block content
+    h2 Items Automatically Discounted (Expiry within 20 days)
+    p The following items received a 25% discount:
+
+    ul
+      each item in items
+        li
+          | #{item.name} (Expires: #{item.expiryDate}) -
+          | From $
+          b #{item.originalPrice}
+          |  to
+          b(class="highlight") $#{item.discountedPrice}
+

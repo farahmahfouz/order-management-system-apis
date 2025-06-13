@@ -1,0 +1,8 @@
+extends baseEmail
+
+block content
+    h1 Items Expiry Notification
+    p The following items are about to expire or expired:
+    ul
+      each item in items
+        li #{item.name} - Expires on #{item.expiryDate} - Stock: #{item.stockQuantity}
