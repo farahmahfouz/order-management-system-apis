@@ -5,9 +5,16 @@ const Item = require('../models/itemModel');
 const fs = require('fs');
 const csv = require('csv-parser');
 const { Parser } = require('json2csv');
+const { generatePromoMessages } = require('../services/aiService');
+const { sendPromoToAdmins } = require('../utils/sendPromo');
+
 
 exports.createItem = catchAsync(async (req, res, next) => {
   const item = await itemService.createItem(req.body);
+  if (item.category === 'food' && item.price >= 200) {
+    const promos = await generatePromoMessages(item.name, item.price);
+    await sendPromoToAdmins(promos);
+  }
   res.status(201).json({ status: 'success', data: { item } });
 });
 

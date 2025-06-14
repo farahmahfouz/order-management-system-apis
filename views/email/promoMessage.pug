@@ -1,0 +1,12 @@
+extends baseEmail
+
+block content
+    h2 Hello #{firstName},
+    p We've got exciting new promotional messages for a high-value food item!
+
+    ul
+      each message in messages
+        li= message
+
+    p Enjoy 🚀,
+    p The Farah's Order System Team

@@ -5,6 +5,9 @@ const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const cookieParser = require('cookie-parser');
+const cors = require('cors');
+const hpp = require('hpp');
+const xss = require('xss-clean');
 
 const globalHandleMiddleware = require('./middlewares/errorMiddleware');
 const AppError = require('./utils/appError');
@@ -18,7 +21,7 @@ const app = express();
 
 app.use(express.json());
 
-app.cors();
+app.use(cors());
 
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
@@ -38,17 +41,12 @@ app.use('/api', limiter);
 
 app.use(cookieParser());
 
-app.use(mongoSanitize());
-app.use(xss());
+// app.use(mongoSanitize());
+// app.use(xss());
 
 app.use(
   hpp({
-    whitelist: [
-      'expiryDate',
-      'stockQuantity',
-      'category',
-      'price',
-    ],
+    whitelist: ['expiryDate', 'stockQuantity', 'category', 'price'],
   })
 );
 

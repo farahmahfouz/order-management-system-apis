@@ -8,8 +8,8 @@ block content
       each item in items
         li
           | #{item.name} (Expires: #{item.expiryDate}) -
-          | From $
+          | From EGP
           b #{item.originalPrice}
           |  to
-          b(class="highlight") $#{item.discountedPrice}
+          b(class="highlight") EGP#{item.discountedPrice}
 
