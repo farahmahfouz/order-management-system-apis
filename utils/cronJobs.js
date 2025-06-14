@@ -4,6 +4,9 @@ const Order = require('../models/orderModel');
 const User = require('../models/userModel');
 const Email = require('../utils/email');
 const dayjs = require('dayjs');
+const { generateCSV } = require('../utils/generateCSV');
+const { getDriveClient } = require('../controllers/googleController');
+const { Readable } = require('stream');
 
 cron.schedule('0 * * * *', async () => {
   console.log('🔁 Running cron jobs every hour...');
@@ -11,6 +14,7 @@ cron.schedule('0 * * * *', async () => {
   await notifyAboutExpiringItems();
   await expirePendingOrders();
   await applyAutoDiscount();
+  await generateDailyReport();
 });
 
 const notifyAboutExpiringItems = async () => {
@@ -56,6 +60,7 @@ const notifyAboutExpiringItems = async () => {
     }
 
     if (expiryToday.length) {
+      await addExpiryReminderToCalendar(expirySoon, admin.email);
       await email.send('expiryNotification', 'Items expiring today', {
         items: expiryToday,
       });
@@ -103,7 +108,7 @@ const applyAutoDiscount = async () => {
         discountedPrice: discounted,
       });
     }
-    
+
     item.excludeFromDiscount = true;
 
     await item.save();
@@ -127,8 +132,85 @@ const applyAutoDiscount = async () => {
   }
 };
 
+const generateDailyReport = async () => {
+  const orders = await Order.find({
+    createdAt: {
+      $gte: dayjs().startOf('day').toDate(),
+      $lte: dayjs().endOf('day').toDate(),
+    },
+  }).populate('items.item');
+
+  if (!orders.length) {
+    console.log('📭 No orders found for today, skipping CSV report.');
+    return;
+  }
+
+  const csvContent = generateCSV(orders);
+  try {
+    await uploadToDrive(csvContent, 'farahmahfouz11@gmail.com');
+    console.log('✅ CSV uploaded to Google Drive.');
+  } catch (err) {
+    console.error('❌ Failed to upload to Drive:', err);
+  }
+};
+
+const uploadToDrive = async (csvContent, userEmail) => {
+  const drive = await getDriveClient(userEmail);
+
+  const stream = Readable.from([csvContent]);
+
+  const response = await drive.files.create({
+    requestBody: {
+      name: `daily-report-${Date.now()}.csv`,
+      mimeType: 'text/csv',
+    },
+    media: {
+      mimeType: 'text/csv',
+      body: stream,
+    },
+  });
+
+  console.log('📤 File uploaded to Drive:', response.data);
+};
+
+const { getCalendarClient } = require('../controllers/googleController');
+
+const addExpiryReminderToCalendar = async (items, userEmail) => {
+  const calendar = await getCalendarClient(userEmail);
+
+  for (const item of items) {
+    const summary = `Use by ${dayjs(item.expiryDate).format('DD/MM')}: ${
+      item.stockQuantity
+    } ${item.name}`;
+    const eventDate = dayjs(item.expiryDate).startOf('day');
+
+    const event = {
+      summary,
+      description: 'Expiry reminder from Order System',
+      start: {
+        date: eventDate.format('YYYY-MM-DD'),
+      },
+      end: {
+        date: eventDate.add(1, 'day').format('YYYY-MM-DD'),
+      },
+    };
+
+    try {
+      const response = await calendar.events.insert({
+        calendarId: 'primary',
+        requestBody: event,
+      });
+
+      console.log(`📆 Event created: ${response.data.summary}`);
+    } catch (err) {
+      console.error('❌ Failed to create calendar event:', err.message);
+    }
+  }
+};
+
 module.exports = {
   notifyAboutExpiringItems,
   expirePendingOrders,
   applyAutoDiscount,
+  generateDailyReport,
 };

@@ -16,6 +16,7 @@ const userRoutes = require('./routes/userRoute');
 const itemRoutes = require('./routes/itemRoute');
 const orderRoutes = require('./routes/orderRoute');
 const reportRoutes = require('./routes/reportRoute');
+const googleRoutes = require('./routes/googleRoute');
 
 const app = express();
 
@@ -50,6 +51,7 @@ app.use(
   })
 );
 
+app.use('/', googleRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/items', itemRoutes);
 app.use('/api/v1/orders', orderRoutes);

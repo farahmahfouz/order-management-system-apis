@@ -14,6 +14,7 @@ mongoose
     // await notifyAboutExpiringItems();
     // await expirePendingOrders();
     // await applyAutoDiscount();
+    // await generateDailyReport();
     app.listen(process.env.PORT, () => {
       console.log(`Server running on port ${process.env.PORT}`);
     });
