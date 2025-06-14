@@ -122,6 +122,36 @@ system-management/
 - **cors**: Cross-origin resource sharing
 - **dotenv**: Environment variables
 
+## 🤖 AI Integration
+
+This system integrates **Generative AI (Gen AI)** to automate marketing content creation and administrative notifications.
+
+### ✨ Smart Promotional Messaging
+
+* When a **new "Food" item** is added to the system with a price of **200 EGP or more**, the system:
+
+  * Automatically generates **3 promotional messages** (1 SMS and 2 social media posts)
+  * Uses **Gen AI API** to craft creative and engaging content tailored to the product
+
+### 📩 AI-Triggered Admin Alerts
+
+* Admins are notified via email in the following cases:
+
+  * A **new "Food" item** is added with a price ≥ 200 EGP
+  * An item achieves **500+ sales within 10 days**
+
+These AI-powered features ensure:
+
+* Faster and more engaging marketing communication
+* Real-time monitoring of high-performing products
+* Less manual work for admins and marketing teams
+
+### Technologies Used:
+
+* **OpenRouter API** for generating messages
+* **Nodemailer** for sending email notifications
+* **Mongoose** middleware & scheduled logic for tracking item sales
+
 ## MongoDB Best Practices Implemented
 
 - Connection pooling
