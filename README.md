@@ -1,191 +1,149 @@
-# System Management Application
+# 🚀 System Management Application
 
-A comprehensive system management application built with Node.js, Express, and MongoDB.
+A comprehensive system management application built with Node.js, Express, and MongoDB, featuring AI-powered automation and intelligent business workflows.
 
-## Prerequisites
+## Quick Setup
 
-Before you begin, ensure you have the following installed:
-- Node.js (v14 or higher)
-- MongoDB (v4.4 or higher)
-- npm (Node Package Manager)
-
-## Environment Setup
-
-1. Clone the repository:
+1. **Clone & Install:**
 ```bash
 git clone https://github.com/farahmahfouz/order_management_system
 cd system-management
-```
-
-2. Install dependencies:
-```bash
 npm install
 ```
 
-3. Create a `.env` file in the root directory with the following variables:
+2. **Environment Configuration:**
 ```env
-# Server Configuration
+# Server
 PORT=3000
 NODE_ENV=development
 
-# Database Configuration
-# MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/system_management
+# Database
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/system_management
 
-# JWT Configuration
+# Authentication
 JWT_SECRET=your_jwt_secret_key
 JWT_EXPIRES_IN=90d
 
-# Email Configuration (SendGrid)
+# Email
 SENDGRID_API_KEY=your_sendgrid_api_key
 EMAIL_FROM=your_verified_sender_email
+
+# AI & Google Services
+OPENROUTER_API_KEY=your_openrouter_api_key
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
 ```
 
-## Running the Application
-
-### Development Mode
+3. **Run Application:**
 ```bash
-npm start
+npm start        # Development
+npm run start:prod  # Production
 ```
 
-### Production Mode
-```bash
-npm run start:prod
-```
+## 📖 API Documentation
 
-### Running Tests
-```bash
-npm test
-```
+**[Postman Collection](https://documenter.getpostman.com/view/37612905/2sB2x3nYY7)**
 
-## API Documentation
+Covers: Authentication, Users, Items, Orders, Reports, Advanced Querying
 
-For detailed documentation of the available API endpoints, refer to the following:
+## 🤖 AI Integration Features
 
-[API Documentation: Postman Collection](https://documenter.getpostman.com/view/37612905/2sB2x3nYY7)
+### Smart Promotional Messaging
+- **Auto-generates 3 promotional messages** (1 SMS + 2 social posts) for new Food items ≥ 200 EGP
+- Uses **OpenRouter Gen AI API** for creative content
 
-This documentation covers:
-- Authentication (login, signup, password reset)
-- User profile management
-- Items management
-- Orders management
-- Reports management
-- Advanced data querying (filtering, sorting, pagination)
+### AI-Triggered Admin Alerts
+- New expensive food items (≥200 EGP)
+- High-performing items (500+ sales in 10 days)
+
+## ⏰ Automated Business Operations
+
+**Hourly cron jobs handle:**
+
+### 📅 Expiry Management
+- **Today's expiry alerts** + **5-day warnings**
+- Email notifications to admins/managers
+- **Google Calendar integration** for expiry reminders
+
+### 💰 Smart Pricing
+- **Auto 25% discount** for items expiring within 20 days
+- Prevents duplicate applications
+- Admin notification reports
+
+### 🛒 Order Management
+- **Auto-expire pending orders** after 4 hours
+- Status tracking and analytics
+
+### 📊 Daily Reports
+- **Automated CSV generation** of daily orders
+- **Google Drive upload** integration
+- Email distribution to stakeholders
+
+## 🔗 Google Services Integration
+
+- **📧 Gmail**: Email automation via Nodemailer
+- **📅 Calendar**: Expiry reminder events
+- **💾 Drive**: Automated report storage
 
 ## Database Schema
 
-The application uses MongoDB with Mongoose ODM. Key collections include:
-- **Users**: User authentication and profile data
-- **Items**: Product/service catalog
-- **Orders**: Order management and tracking
-
-Mongoose automatically handles:
-- Schema validation
-- Data type conversion
-- Relationship management
-- Index creation
+**MongoDB Collections:**
+- **Users**: Authentication, profiles, roles
+- **Items**: Product catalog with expiry tracking
+- **Orders**: Order management and analytics
 
 ## Security Features
 
-- Password hashing using bcrypt
+- Password hashing (bcrypt)
 - JWT authentication
-- Rate limiting
-- CORS protection
-- Helmet security headers
+- Rate limiting & CORS
 - Input validation
 - NoSQL injection protection
-- MongoDB connection security
+
+## Key Dependencies
+
+**Core:** express, mongoose, bcryptjs, jsonwebtoken  
+**Automation:** node-cron, dayjs, nodemailer  
+**AI/Services:** openrouter, googleapis, sendgrid  
+**Security:** helmet, express-rate-limit, cors
 
 ## File Structure
 
 ```
 system-management/
-├── config/             # Configuration files
+├── config/             # Configuration
 ├── controllers/        # Route controllers
-├── middlewares/        # Custom middlewares
-├── models/            # Mongoose models
+├── models/            # Mongoose schemas
+├── utils/             # Utilities (email, CSV, cronJobs)
 ├── routes/            # API routes
-├── utils/             # Utility functions
-├── tests/             # Test files
-├── services/           # Business logic
-├── app.js            # Application entry point
-└── package.json      # Project dependencies
+├── middlewares/       # Custom middlewares
+└── app.js            # Entry point
 ```
-
-## Key Dependencies
-
-- **express**: Web framework
-- **mongoose**: MongoDB ODM
-- **bcryptjs**: Password hashing
-- **jsonwebtoken**: JWT authentication
-- **express-rate-limit**: Rate limiting
-- **helmet**: Security headers
-- **cors**: Cross-origin resource sharing
-- **dotenv**: Environment variables
-
-## 🤖 AI Integration
-
-This system integrates **Generative AI (Gen AI)** to automate marketing content creation and administrative notifications.
-
-### ✨ Smart Promotional Messaging
-
-* When a **new "Food" item** is added to the system with a price of **200 EGP or more**, the system:
-
-  * Automatically generates **3 promotional messages** (1 SMS and 2 social media posts)
-  * Uses **Gen AI API** to craft creative and engaging content tailored to the product
-
-### 📩 AI-Triggered Admin Alerts
-
-* Admins are notified via email in the following cases:
-
-  * A **new "Food" item** is added with a price ≥ 200 EGP
-  * An item achieves **500+ sales within 10 days**
-
-These AI-powered features ensure:
-
-* Faster and more engaging marketing communication
-* Real-time monitoring of high-performing products
-* Less manual work for admins and marketing teams
-
-### Technologies Used:
-
-* **OpenRouter API** for generating messages
-* **Nodemailer** for sending email notifications
-* **Mongoose** middleware & scheduled logic for tracking item sales
-
-## MongoDB Best Practices Implemented
-
-- Connection pooling
-- Proper error handling
-- Schema validation
-- Index optimization
-- Aggregation pipelines for complex queries
-- Mongoose middleware for data processing
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
 
 ## Troubleshooting
 
-### Common MongoDB Issues:
+**MongoDB Issues:**
+- Check connection string and network access
+- Verify Atlas credentials and IP whitelist
 
-1. **Connection Issues:**
-   - Ensure MongoDB is running
-   - Check connection string in `.env`
-   - Verify network connectivity for Atlas
+**Cron Jobs:**
+- Check server timezone and logs
+- Verify SendGrid API configuration
 
-2. **Authentication Errors:**
-   - Verify username/password for Atlas
-   - Check IP whitelist settings
+**Google Services:**
+- Confirm OAuth credentials and API permissions
 
-3. **Performance Issues:**
-   - Monitor database indexes
-   - Use MongoDB Compass for query optimization
+## Contributing
+
+1. Fork repository
+2. Create feature branch
+3. Commit changes
+4. Open Pull Request
 
 ## License
 
-This project is licensed under the ISC License.
+ISC License
+
+---
+
+**Built with ❤️ by [Farah Mahfouz](https://github.com/farahmahfouz)**

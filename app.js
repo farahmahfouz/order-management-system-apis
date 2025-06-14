@@ -20,19 +20,18 @@ const googleRoutes = require('./routes/googleRoute');
 
 const app = express();
 
-app.use(express.json());
-
-app.use(cors());
-
-app.set('view engine', 'pug');
-app.set('views', path.join(__dirname, 'views'));
-
+// 🔒 Security Headers 
 app.use(helmet());
 
+// 🌐 CORS
+app.use(cors());
+
+// 📊 Development Logging
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
+// 🚦 Rate Limiting 
 const limiter = rateLimit({
   max: 100,
   windowMs: 60 * 60 * 1000,
@@ -40,29 +39,41 @@ const limiter = rateLimit({
 });
 app.use('/api', limiter);
 
+// 📝 Body Parsing
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(cookieParser());
 
-// app.use(mongoSanitize());
-// app.use(xss());
+// 🛡️ Data Sanitization 
+app.use(mongoSanitize());
+app.use(xss());
 
+// 🚫 Parameter Pollution Protection
 app.use(
   hpp({
     whitelist: ['expiryDate', 'stockQuantity', 'category', 'price'],
   })
 );
 
+// 🎨 Template Engine
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'));
+
+// 🛣️ Routes
 app.use('/', googleRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/items', itemRoutes);
 app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/reports', reportRoutes);
 
+// 🔍 Handle Undefined Routes
 app.use((req, res, next) => {
   next(
     new AppError(`Error Can't find ${req.originalUrl} on this server!`, 404)
   );
 });
 
+// 🚨 Global Error Handler
 app.use(globalHandleMiddleware);
 
 module.exports = app;
