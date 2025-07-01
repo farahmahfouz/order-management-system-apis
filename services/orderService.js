@@ -27,6 +27,7 @@ exports.createOrderService = async ({
       }
 
       item.stockQuantity -= orderItem.quantity;
+      item.sold = (item.sold || 0) + orderItem.quantity;
       await item.save({ session });
 
       totalCost += item.price * orderItem.quantity;

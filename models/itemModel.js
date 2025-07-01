@@ -19,6 +19,10 @@ const itemSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    sold: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );

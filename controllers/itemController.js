@@ -17,6 +17,15 @@ exports.createItem = catchAsync(async (req, res, next) => {
   res.status(201).json({ status: 'success', data: { item } });
 });
 
+exports.getBestSeller = catchAsync(async (req, res, next) => {
+  const bestItems = await Item.find().sort({ sold: -1 }).limit(6);
+  res.status(200).json({
+    status: 'success',
+    result: bestItems.length,
+    data: { items: bestItems },
+  });
+});
+
 exports.getAllItems = catchAsync(async (req, res, next) => {
   const role = req.user.role;
   const items = await itemService.getAllItems(role, req.query);

@@ -9,6 +9,7 @@ const {
   exportItems,
   importItems,
   getDiscountItems,
+  getBestSeller,
 } = require('../controllers/itemController');
 
 const { auth, restrictTo } = require('../middlewares/authMiddleware');
@@ -18,12 +19,11 @@ const upload = multer({ dest: 'uploads/' });
 
 router.use(auth);
 
+router.get('/best-sellers', getBestSeller);
+
 router.get('/', restrictTo('super_admin', 'manager', 'waiter'), getAllItems);
 
-router.get(
-  '/discounted',
-  getDiscountItems
-);
+router.get('/discounted', getDiscountItems);
 
 router.use(restrictTo('super_admin', 'manager'));
 
@@ -40,7 +40,12 @@ router.post(
 
 router.get('/:id', getOneItem);
 
-router.patch('/:id', updateItem);
+router.patch(
+  '/:id',
+  uploadImages([{ name: 'image', count: 1 }]),
+  handleImages('image'),
+  updateItem
+);
 
 router.delete('/:id', deleteItem);
 
