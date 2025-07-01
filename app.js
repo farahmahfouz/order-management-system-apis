@@ -24,7 +24,10 @@ const app = express();
 app.use(helmet());
 
 // 🌐 CORS
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:4200',
+  credentials: true, 
+}));
 
 // 📊 Development Logging
 if (process.env.NODE_ENV === 'development') {
@@ -32,12 +35,12 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // 🚦 Rate Limiting 
-const limiter = rateLimit({
-  max: 100,
-  windowMs: 60 * 60 * 1000,
-  message: 'Too many requests from this IP, please try again in an hour!',
-});
-app.use('/api', limiter);
+// const limiter = rateLimit({
+//   max: 100,
+//   windowMs: 60 * 60 * 1000,
+//   message: 'Too many requests from this IP, please try again in an hour!',
+// });
+// app.use('/api', limiter);
 
 // 📝 Body Parsing
 app.use(express.json({ limit: '10kb' }));

@@ -8,7 +8,6 @@ const { Parser } = require('json2csv');
 const { generatePromoMessages } = require('../services/aiService');
 const { sendPromoToAdmins } = require('../utils/sendPromo');
 
-
 exports.createItem = catchAsync(async (req, res, next) => {
   const item = await itemService.createItem(req.body);
   if (item.category === 'food' && item.price >= 200) {
@@ -60,6 +59,17 @@ exports.deleteItem = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     data: { item },
+  });
+});
+
+exports.getDiscountItems = catchAsync(async (req, res, next) => {
+  const items = await itemService.getDiscountedItemsService();
+  res.status(200).json({
+    status: 'success',
+    result: items.length,
+    data: {
+      items,
+    },
   });
 });
 

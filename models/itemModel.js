@@ -10,6 +10,7 @@ const itemSchema = new mongoose.Schema(
       enum: ['others', 'food', 'beverages'],
       required: true,
     },
+    image: [String],
     expiryDate: Date,
     stockQuantity: { type: Number, default: 0 },
     isAvailable: { type: Boolean, default: true },

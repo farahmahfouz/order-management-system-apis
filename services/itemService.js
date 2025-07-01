@@ -7,6 +7,7 @@ exports.createItem = async ({
   category,
   expiryDate,
   stockQuantity,
+  image
 }) => {
   return await Item.create({
     name,
@@ -14,7 +15,18 @@ exports.createItem = async ({
     category,
     expiryDate,
     stockQuantity,
+    image
   });
+};
+
+exports.getDiscountedItemsService = async () => {
+  const discountedItems = await Item.find({
+    discountPrice: { $exists: true, $ne: null }
+  })
+    .limit(2)
+    .sort({ createdAt: -1 });
+
+  return discountedItems;
 };
 
 exports.getAllItems = async (role, queryParams) => {
