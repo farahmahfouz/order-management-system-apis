@@ -28,7 +28,7 @@ app.use(
   cors({
     origin: [
       'http://localhost:5173',
-      'https://order-management-system-kappa.vercel.app/',
+      'https://order-management-system-kappa.vercel.app',
     ],
     credentials: true,
   })
