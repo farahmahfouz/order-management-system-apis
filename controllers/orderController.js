@@ -4,10 +4,11 @@ const {
   getAllOrderService,
   markOrderCompleteService,
   cancelOrderService,
-  updateOrderService 
+  updateOrderService,
+  getOneOrderService,
 } = require('../services/orderService');
 const AppError = require('../utils/appError');
-
+const Order = require('../models/orderModel');
 
 exports.createOrder = catchAsync(async (req, res, next) => {
   const { customerName, items, waiterId } = req.body;
@@ -45,12 +46,44 @@ exports.markOrderComplete = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllOrders = catchAsync(async (req, res, next) => {
-  const orders = await getAllOrderService();
+  const orders = await getAllOrderService(req.query);
   if (!orders) return next(new AppError('Orders not found', 404));
+  const totalCount = await Order.countDocuments();
+
   res.status(200).json({
     status: 'success',
     result: orders.length,
+    allCounts: totalCount,
     data: { orders },
+  });
+});
+
+exports.getTodayOrders = catchAsync(async (req, res, next) => {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date();
+  end.setHours(23, 59, 59, 999);
+
+  const todayOrders = await Order.find({
+    createdAt: { $gte: start, $lte: end },
+    status: 'pending',
+  });
+
+  if (!todayOrders) return next(AppError('No Orders for today!', 404));
+
+  res.status(200).json({
+    status: 'success',
+    data: { orders: todayOrders },
+  });
+});
+
+exports.getOrderById = catchAsync(async (req, res, next) => {
+  const order = await getOneOrderService(req.params.id);
+  if (!order) return next(new AppError('Order not found', 404));
+  res.status(200).json({
+    status: 'success',
+    data: { order },
   });
 });
 

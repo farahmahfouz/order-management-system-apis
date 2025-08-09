@@ -34,9 +34,12 @@ exports.getAllItems = catchAsync(async (req, res, next) => {
     return next(new AppError('Items not found', 404));
   }
 
+  const totalCount = await Item.countDocuments();
+
   res.status(200).json({
     status: 'success',
     result: items.length,
+    allCounts: totalCount,
     data: { items },
   });
 });

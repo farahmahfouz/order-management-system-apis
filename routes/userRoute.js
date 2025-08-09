@@ -7,10 +7,24 @@ const {
   login,
   forgotPassword,
   resetPassword,
+  logout,
+  updatePassword,
 } = require('../controllers/authController');
-const { getOneUser, getAllUsers, updateUser, deleteUser } = require('../controllers/userController');
+const {
+  getOneUser,
+  getAllUsers,
+  updateUser,
+  deleteUser,
+} = require('../controllers/userController');
 const { registerSchema, loginSchema } = require('../validation/userValidate');
 const { validate } = require('../validation/errValidate');
+const { uploadImages, handleImages } = require('../middlewares/multer');
+
+router.post('/forgot-password', forgotPassword);
+router.patch('/reset-password/:token', resetPassword);
+router.get('/activate-account/:token', activateAccount);
+router.get('/logout', logout);
+router.post('/login', validate(loginSchema), login);
 
 router.post(
   '/register',
@@ -19,21 +33,22 @@ router.post(
   validate(registerSchema),
   register
 );
-router.post('/login', validate(loginSchema), login);
-
-router.post('/forgot-password', forgotPassword);
-router.patch('/reset-password/:token', resetPassword);
-
-router.get('/activate-account/:token', activateAccount);
 
 router.use(auth);
 
 router.get('/me', getOneUser);
 
+router.patch('/updateMyPassword', updatePassword);
+
 router.use(restrictTo('super_admin', 'manager'));
 
 router.get('/', getAllUsers);
-router.patch('/:id', updateUser);
+router.patch(
+  '/:id',
+  uploadImages([{ name: 'image', count: 1 }]),
+  handleImages('image'),
+  updateUser
+);
 router.delete('/:id', deleteUser);
 
 module.exports = router;

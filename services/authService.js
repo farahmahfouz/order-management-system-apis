@@ -52,6 +52,10 @@ exports.resetUserPassword = async (token, newPassword) => {
     passwordResetExpires: { $gt: Date.now() },
   });
 
+  if (!user) {
+    return null; 
+  }
+
   user.password = newPassword;
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;

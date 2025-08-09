@@ -16,6 +16,7 @@ const orderSchema = new mongoose.Schema({
     enum: ['cancelled', 'pending', 'completed', 'expired'],
     default: 'pending',
   },
+  customerName: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
 });
 

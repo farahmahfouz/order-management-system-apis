@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Item = require('../models/itemModel');
 const Order = require('../models/orderModel');
 const AppError = require('../utils/appError');
+const APIFeatures = require('../utils/apiFeatures');
 
 exports.createOrderService = async ({
   customerName,
@@ -78,9 +79,13 @@ exports.updateOrderService = async (orderId, body, next) => {
 
     const oldItemIds = order.items.map((itemObj) => itemObj.item);
     const newItemIds = newItems.map((itemObj) => itemObj.item);
-    const allItemIds = [...new Set([...oldItemIds, ...newItemIds].map((id) => id.toString()))];
+    const allItemIds = [
+      ...new Set([...oldItemIds, ...newItemIds].map((id) => id.toString())),
+    ];
 
-    const itemsFromDb = await Item.find({ _id: { $in: allItemIds } }).session(session);
+    const itemsFromDb = await Item.find({ _id: { $in: allItemIds } }).session(
+      session
+    );
 
     if (itemsFromDb.length !== allItemIds.length) {
       throw new AppError('One or more items not found', 404);
@@ -145,7 +150,6 @@ exports.updateOrderService = async (orderId, body, next) => {
   }
 };
 
-
 exports.markOrderCompleteService = async (orderId) => {
   return await Order.findByIdAndUpdate(
     orderId,
@@ -154,11 +158,27 @@ exports.markOrderCompleteService = async (orderId) => {
   );
 };
 
-exports.getAllOrderService = async () => {
-  return await Order.find()
-    .populate('cashier', 'name')
-    .populate('waiter', 'name')
+exports.getAllOrderService = async (queryString) => {
+  const features = new APIFeatures(Order.find(), queryString)
+    .filter()
+    .sort()
+    .limitFields()
+    .pagination()
+    .search();
+
+  const orders = await features.query
+    .populate('cashier', 'name email')
+    .populate('waiter', 'name email')
     .populate('items.item', 'name price');
+
+  return orders;
+};
+
+exports.getOneOrderService = async (id) => {
+  return await Order.findById(id)
+    .populate('items.item', 'name category price ')
+    .populate('waiter', 'name')
+    .populate('cashier', 'name');
 };
 
 exports.cancelOrderService = async (id) => {

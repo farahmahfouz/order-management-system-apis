@@ -7,14 +7,20 @@ const {
   getAllOrders,
   cancelOrder,
   updateOrder,
+  getOrderById,
+  getTodayOrders
 } = require('../controllers/orderController');
 const { auth, restrictTo } = require('../middlewares/authMiddleware');
 
-router.use(auth, restrictTo('cashier', 'super-admin', 'manager'));
+router.use(auth, restrictTo('cashier', 'super_admin', 'manager'));
+
+router.get('/sales', getTodayOrders);
 
 router.post('/', createOrder);
 
 router.patch('/:id', updateOrder);
+
+router.get('/:id', getOrderById)
 
 router.patch('/:id/complete', markOrderComplete);
 

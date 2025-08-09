@@ -1,7 +1,7 @@
 const User = require('../models/userModel');
 
 exports.getUserById = async (id) => {
-  return await User.findById(id).select('-isVerified');
+  return await User.findById(id).select('+isVerified');
 };
 
 exports.getAllUsers = async (role) => {

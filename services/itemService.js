@@ -7,6 +7,7 @@ exports.createItem = async ({
   category,
   expiryDate,
   stockQuantity,
+  description,
   image
 }) => {
   return await Item.create({
@@ -14,6 +15,7 @@ exports.createItem = async ({
     price,
     category,
     expiryDate,
+    description,
     stockQuantity,
     image
   });

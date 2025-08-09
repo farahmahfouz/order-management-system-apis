@@ -18,6 +18,7 @@ const userSchema = new mongoose.Schema(
       required: true,
       select: false,
     },
+    image: [String],
     role: {
       type: String,
       enum: ['super_admin', 'manager', 'cashier', 'waiter'],
@@ -26,6 +27,7 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    changePasswordAt: Date,
     activationToken: String,
     activationTokenExpire: Date,
     passwordResetToken: String,
@@ -36,10 +38,17 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-userSchema.pre('save', async function () {
-  if (!this.isModified('password')) return;
+userSchema.pre('save', function (next) {
+  if (!this.isModified('password') && !this.isNew) return next();
+  this.changePasswordAt = Date.now() - 1000;
+  next();
+});
 
+
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
   this.password = await bcrypt.hash(this.password, 12);
+  next();
 });
 
 userSchema.methods._createHashedToken = function (fieldPrefix) {
@@ -67,6 +76,17 @@ userSchema.methods.comparePassword = async function (
   userPassword
 ) {
   return await bcrypt.compare(candidatePassword, userPassword);
+};
+
+userSchema.methods.changedPasswordAfter = function (JWTTimesStamp) {
+  if (this.changePasswordAt) {
+    const changeTimeStamp = parseInt(
+      this.changePasswordAt.getTime() / 1000,
+      10
+    );
+    return JWTTimesStamp < changeTimeStamp;
+  }
+  return false;
 };
 
 const User = mongoose.model('User', userSchema);
