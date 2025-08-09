@@ -20,21 +20,26 @@ const googleRoutes = require('./routes/googleRoute');
 
 const app = express();
 
-// 🔒 Security Headers 
+// 🔒 Security Headers
 app.use(helmet());
 
 // 🌐 CORS
-app.use(cors({
-  origin: 'http://localhost:5173',
-  credentials: true, 
-}));
+app.use(
+  cors({
+    origin: [
+      'http://localhost:5173',
+      'https://order-management-system-kappa.vercel.app/',
+    ],
+    credentials: true,
+  })
+);
 
 // 📊 Development Logging
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-// 🚦 Rate Limiting 
+// 🚦 Rate Limiting
 // const limiter = rateLimit({
 //   max: 100,
 //   windowMs: 60 * 60 * 1000,
@@ -47,7 +52,7 @@ app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(cookieParser());
 
-// 🛡️ Data Sanitization 
+// 🛡️ Data Sanitization
 app.use(mongoSanitize());
 app.use(xss());
 
