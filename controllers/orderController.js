@@ -70,10 +70,16 @@ exports.getTodayOrders = catchAsync(async (req, res, next) => {
     status: 'pending',
   });
 
-  if (!todayOrders) return next(AppError('No Orders for today!', 404));
-
+  if (todayOrders.length === 0) {
+    return res.status(200).json({
+      status: 'success',
+      result: 0,
+      data: { orders: [] },
+    });
+  }
   res.status(200).json({
     status: 'success',
+    result: todayOrders.length,
     data: { orders: todayOrders },
   });
 });
