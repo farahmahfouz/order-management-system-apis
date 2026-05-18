@@ -31,7 +31,9 @@ exports.createOrderService = async ({
       item.sold = (item.sold || 0) + orderItem.quantity;
       await item.save({ session });
 
-      totalCost += item.price * orderItem.quantity;
+      const finalPrice = item.discountPrice || item.price;
+
+      totalCost += finalPrice * orderItem.quantity;
     }
 
     const [order] = await Order.create(
@@ -44,7 +46,7 @@ exports.createOrderService = async ({
           totalCost,
         },
       ],
-      { session }
+      { session },
     );
 
     await session.commitTransaction();
@@ -84,7 +86,7 @@ exports.updateOrderService = async (orderId, body, next) => {
     ];
 
     const itemsFromDb = await Item.find({ _id: { $in: allItemIds } }).session(
-      session
+      session,
     );
 
     if (itemsFromDb.length !== allItemIds.length) {
@@ -92,7 +94,7 @@ exports.updateOrderService = async (orderId, body, next) => {
     }
 
     const itemMap = new Map(
-      itemsFromDb.map((item) => [item._id.toString(), item])
+      itemsFromDb.map((item) => [item._id.toString(), item]),
     );
 
     const bulkUpdates = [];
@@ -127,7 +129,7 @@ exports.updateOrderService = async (orderId, body, next) => {
         },
       });
 
-      newTotalCost += item.price * newItem.quantity;
+      newTotalCost += (item.discountPrice || item.price) * newItem.quantity;
     }
 
     // 3. Apply stock updates
@@ -154,7 +156,7 @@ exports.markOrderCompleteService = async (orderId) => {
   return await Order.findByIdAndUpdate(
     orderId,
     { status: 'completed' },
-    { new: true }
+    { new: true },
   );
 };
 
@@ -185,6 +187,6 @@ exports.cancelOrderService = async (id) => {
   return await Order.findByIdAndUpdate(
     id,
     { status: 'cancelled' },
-    { new: true }
+    { new: true },
   );
 };
