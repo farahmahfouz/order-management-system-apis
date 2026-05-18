@@ -19,12 +19,13 @@ const {
 const { registerSchema, loginSchema } = require('../validation/userValidate');
 const { validate } = require('../validation/errValidate');
 const { uploadImages, handleImages } = require('../middlewares/multer');
+const { loginLimiter, forgotPasswordLimiter } = require('../utils/rateLimiter');
 
-router.post('/forgot-password', forgotPassword);
+router.post('/forgot-password', forgotPasswordLimiter, forgotPassword);
 router.patch('/reset-password/:token', resetPassword);
 router.get('/activate-account/:token', activateAccount);
 router.get('/logout', logout);
-router.post('/login', validate(loginSchema), login);
+router.post('/login', loginLimiter, validate(loginSchema), login);
 
 router.post(
   '/register',
