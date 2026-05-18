@@ -8,7 +8,7 @@ const { generateCSV } = require('../utils/generateCSV');
 const { getDriveClient } = require('../controllers/googleController');
 const { Readable } = require('stream');
 
-cron.schedule('0 * * * *', async () => {
+cron.schedule('0 0 * * *', async () => {
   console.log('🔁 Running cron jobs every hour...');
 
   await notifyAboutExpiringItems();
@@ -60,7 +60,7 @@ const notifyAboutExpiringItems = async () => {
     }
 
     if (expiryToday.length) {
-      await addExpiryReminderToCalendar(expirySoon, admin.email);
+      await addExpiryReminderToCalendar(expiryToday, admin.email);
       await email.send('expiryNotification', 'Items expiring today', {
         items: expiryToday,
       });

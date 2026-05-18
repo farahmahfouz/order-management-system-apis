@@ -14,6 +14,7 @@ exports.auth = async (req, res, next) => {
 
     if (!token)
       return next(new AppError('Please log in to access this resource', 401));
+    console.log('VERIFY SECRET:', process.env.JWT_SECRET);
 
     const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id);

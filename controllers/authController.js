@@ -10,7 +10,7 @@ const createSendToken = (user, statusCode, res) => {
   const cookieOptions = {
     expires: new Date(Date.now() + 50 * 24 * 60 * 60 * 1000),
     httpOnly: true,
-    sameSite: 'None',
+    sameSite: 'Lax',
   };
 
   if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
@@ -38,12 +38,12 @@ exports.register = catchAsync(async (req, res, next) => {
   });
 
   const activationUrl = `${req.protocol}://${req.get(
-    'host'
+    'host',
   )}/api/v1/users/activate-account/${activationToken}`;
 
   await new Email(user, activationUrl).send(
     'accountActivation',
-    'Activate your account'
+    'Activate your account',
   );
 
   createSendToken(user, 201, res);
@@ -72,13 +72,16 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   const user = await authService.loginUser({ email });
+  console.log(user);
+  console.log(password);
+  console.log(user.password);
   if (!user || !(await user.comparePassword(password, user.password))) {
     return next(new AppError('Incorrect email or password', 401));
   }
 
   if (!user.isVerified) {
     return next(
-      new AppError('Please verify your email before logging in', 401)
+      new AppError('Please verify your email before logging in', 401),
     );
   }
   createSendToken(user, 200, res);
@@ -86,7 +89,7 @@ exports.login = catchAsync(async (req, res, next) => {
 
 exports.forgotPassword = catchAsync(async (req, res, next) => {
   const { user, resetToken } = await authService.generateResetTokenAndSend(
-    req.body.email
+    req.body.email,
   );
 
   if (!user)
@@ -94,7 +97,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 
   try {
     const resetUrl = `${req.protocol}://${req.get(
-      'host'
+      'host',
     )}/api/v1/users/reset-password/${resetToken}`;
     await new Email(user, resetUrl).sendPasswordReset();
 
@@ -107,7 +110,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
     user.passwordResetExpires = undefined;
     await user.save({ validateBeforeSave: false });
     return next(
-      new AppError('There was an error sending email. Try again later!', 500)
+      new AppError('There was an error sending email. Try again later!', 500),
     );
   }
 });
@@ -115,7 +118,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 exports.resetPassword = catchAsync(async (req, res, next) => {
   const user = await authService.resetUserPassword(
     req.params.token,
-    req.body.password
+    req.body.password,
   );
   if (!user) return next(new AppError('Token is invalid or has expired', 400));
   createSendToken(user, 201, res);

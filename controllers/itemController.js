@@ -1,9 +1,11 @@
 const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
 const itemService = require('../services/itemService');
+const Order = require('../models/orderModel');
 const Item = require('../models/itemModel');
 const fs = require('fs');
 const csv = require('csv-parser');
+const dayjs = require('dayjs');
 const { Parser } = require('json2csv');
 const { generatePromoMessages } = require('../services/aiService');
 const { sendPromoToAdmins } = require('../utils/sendPromo');
@@ -153,4 +155,26 @@ exports.importItems = catchAsync(async (req, res, next) => {
         next(err);
       }
     });
+});
+
+exports.getDashboardStats = catchAsync(async (req, res, next) => {
+  const today = dayjs().startOf('day');
+  const in5Days = today.add(5, 'day');
+  const expiryToday = await Item.countDocuments({
+    expiryDate: { $gte: today.toDate(), $lt: today.add(1, 'day').toDate() },
+  });
+
+  const expirySoon = await Item.countDocuments({
+    expiryDate: {
+      $gte: in5Days.startOf('day').toDate(),
+      $lt: in5Days.add(1, 'day').toDate(),
+    },
+  });
+
+  const discounted = await Item.countDocuments({
+    discountPrice: { $exists: true },
+  });
+  const expiredOrders = await Order.countDocuments({ status: 'expired' });
+
+  res.json({ expiryToday, expirySoon, discounted, expiredOrders });
 });

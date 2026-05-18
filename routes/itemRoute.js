@@ -10,6 +10,7 @@ const {
   importItems,
   getDiscountItems,
   getBestSeller,
+  getDashboardStats,
 } = require('../controllers/itemController');
 
 const { auth, restrictTo } = require('../middlewares/authMiddleware');
@@ -18,6 +19,8 @@ const { uploadImages, handleImages } = require('../middlewares/multer');
 const upload = multer({ dest: 'uploads/' });
 
 router.use(auth);
+
+router.get('/dashboard-stats', getDashboardStats);
 
 router.get('/best-sellers', getBestSeller);
 
