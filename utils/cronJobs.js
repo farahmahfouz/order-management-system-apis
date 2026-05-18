@@ -38,14 +38,14 @@ const notifyAboutExpiringItems = async () => {
   console.log('📆 Items expiring TODAY:', expiryToday.length);
   expiryToday.forEach((item) => {
     console.log(
-      `🔴 TODAY - ${item.name} | Qty: ${item.stockQuantity} | Exp: ${item.expiryDate}`
+      `🔴 TODAY - ${item.name} | Qty: ${item.stockQuantity} | Exp: ${item.expiryDate}`,
     );
   });
 
   console.log('📆 Items expiring IN 5 DAYS:', expirySoon.length);
   expirySoon.forEach((item) => {
     console.log(
-      `🟠 IN 5 DAYS - ${item.name} | Qty: ${item.stockQuantity} | Exp: ${item.expiryDate}`
+      `🟠 IN 5 DAYS - ${item.name} | Qty: ${item.stockQuantity} | Exp: ${item.expiryDate}`,
     );
   });
 
@@ -76,7 +76,7 @@ const expirePendingOrders = async () => {
       status: 'pending',
       createdAt: { $lte: fourHoursAgo },
     },
-    { status: 'expired' }
+    { status: 'expired' },
   );
 
   console.log(`⏳ Expired ${result.modifiedCount} old pending orders`);
@@ -101,17 +101,16 @@ const applyAutoDiscount = async () => {
     if (item.discountPrice !== discounted) {
       item.discountPrice = discounted;
 
+      item.excludeFromDiscount = true;
+
       updatedItems.push({
         name: item.name,
         expiryDate: dayjs(item.expiryDate).format('YYYY-MM-DD'),
         originalPrice,
         discountedPrice: discounted,
       });
+      await item.save();
     }
-
-    item.excludeFromDiscount = true;
-
-    await item.save();
   }
 
   if (updatedItems.length > 0) {
@@ -179,7 +178,7 @@ const addExpiryReminderToCalendar = async (items, userEmail, type) => {
   const calendar = await getCalendarClient(userEmail);
 
   for (const item of items) {
-    const label = type === 'today' ? 'TODAY' : 'IN 5 DAYS'; 
+    const label = type === 'today' ? 'TODAY' : 'IN 5 DAYS';
     const summary = `${label} - Use by ${dayjs(item.expiryDate).format('DD/MM')}: ${
       item.stockQuantity
     } ${item.name}`;

@@ -77,6 +77,10 @@ exports.updateOrderService = async (orderId, body, next) => {
   session.startTransaction();
 
   try {
+    const updatedOrderItems = [];
+    const bulkUpdates = [];
+    let newTotalCost = 0;
+
     const order = await Order.findById(orderId).session(session);
     if (!order) throw new AppError('Order not found', 404);
 
@@ -103,9 +107,6 @@ exports.updateOrderService = async (orderId, body, next) => {
     const itemMap = new Map(
       itemsFromDb.map((item) => [item._id.toString(), item]),
     );
-
-    const bulkUpdates = [];
-    let newTotalCost = 0;
 
     // 1. Restore old items' stock
     for (const oldItem of order.items) {
@@ -136,14 +137,22 @@ exports.updateOrderService = async (orderId, body, next) => {
         },
       });
 
-      newTotalCost += (item.discountPrice || item.price) * newItem.quantity;
+      const finalPrice = item.discountPrice ?? item.price;
+
+      newTotalCost += finalPrice * newItem.quantity;
+
+      updatedOrderItems.push({
+        item: item._id,
+        quantity: newItem.quantity,
+        price: finalPrice,
+      });
     }
 
     // 3. Apply stock updates
     await Item.bulkWrite(bulkUpdates, { session });
 
     // 4. Update order
-    order.items = newItems;
+    order.items = updatedOrderItems;
     order.totalCost = newTotalCost;
     await order.save({ session });
 
@@ -160,11 +169,20 @@ exports.updateOrderService = async (orderId, body, next) => {
 };
 
 exports.markOrderCompleteService = async (orderId) => {
-  return await Order.findByIdAndUpdate(
-    orderId,
-    { status: 'completed' },
-    { new: true },
-  );
+  const order = await Order.findById(orderId);
+  if (!order) throw new AppError('Order not found', 404);
+
+  const invalidStatuses = ['cancelled', 'expired', 'completed'];
+
+  if (invalidStatuses.includes(order.status)) {
+    throw new AppError(`Order already ${order.status}`, 400);
+  }
+
+  order.status = 'completed';
+
+  await order.save();
+
+  return order;
 };
 
 exports.getAllOrderService = async (queryString) => {
