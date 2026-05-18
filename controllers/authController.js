@@ -1,21 +1,22 @@
 const catchAsync = require('../utils/catchAsync');
 const Email = require('../utils/email');
 const authService = require('../services/authService');
-const { signToken } = require('../utils/jwt');
+const { signAccessToken , signRefreshToken} = require('../utils/jwt');
 const User = require('../models/userModel');
 const AppError = require('../utils/appError');
 
 const createSendToken = (user, statusCode, res) => {
-  const token = signToken(user._id);
+  const token = signAccessToken(user._id);
+  const refreshToken = signRefreshToken(user._id);
   const cookieOptions = {
-    expires: new Date(Date.now() + 50 * 24 * 60 * 60 * 1000),
+    expires: new Date(Date.now() + 15 * 60 * 1000),
     httpOnly: true,
     sameSite: 'Lax',
   };
 
   if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
 
-  res.cookie('jwt', token, cookieOptions);
+  res.cookie('refreshToken', refreshToken, cookieOptions);
   user.password = undefined;
 
   res.status(statusCode).json({

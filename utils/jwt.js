@@ -1,10 +1,13 @@
 const jwt = require('jsonwebtoken');
 
-exports.signToken = (id) => {
-  console.log('SIGN SECRET:', process.env.JWT_SECRET);
-
+exports.signAccessToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: '50d',
+    expiresIn: '15m',
   });
 };
 
+exports.signRefreshToken = (id) => {
+  return jwt.sign({ id }, process.env.SECRET_KEY, {
+    expiresIn: '7d',
+  });
+};
