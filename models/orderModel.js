@@ -4,8 +4,17 @@ const orderSchema = new mongoose.Schema({
   items: [
     {
       item: { type: mongoose.Schema.Types.ObjectId, ref: 'Item' },
-      quantity: Number,
-      price: Number
+      quantity: {
+        type: Number,
+        required: true,
+        min: 1,
+      },
+
+      price: {
+        type: Number,
+        required: true,
+        min: 0,
+      },
     },
   ],
   waiter: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

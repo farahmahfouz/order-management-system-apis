@@ -15,6 +15,7 @@ exports.createOrderService = async ({
 
   try {
     let totalCost = 0;
+    const orderItems = [];
 
     for (const orderItem of items) {
       const item = await Item.findById(orderItem.item).session(session);
@@ -31,16 +32,22 @@ exports.createOrderService = async ({
       item.sold = (item.sold || 0) + orderItem.quantity;
       await item.save({ session });
 
-      const finalPrice = item.discountPrice || item.price;
+      const finalPrice = item.discountPrice ?? item.price;
 
       totalCost += finalPrice * orderItem.quantity;
+
+      orderItems.push({
+        item: item._id,
+        quantity: orderItem.quantity,
+        price: finalPrice,
+      });
     }
 
     const [order] = await Order.create(
       [
         {
           customerName,
-          items,
+          items: orderItems,
           waiter: waiterId,
           cashier: cashierId,
           totalCost,
