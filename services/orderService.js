@@ -184,9 +184,40 @@ exports.getOneOrderService = async (id) => {
 };
 
 exports.cancelOrderService = async (id) => {
-  return await Order.findByIdAndUpdate(
-    id,
-    { status: 'cancelled' },
-    { new: true },
-  );
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const order = await Order.findById(id)
+      .populate('items.item')
+      .session(session);
+
+    if (!order) throw new AppError('Order not found', 404);
+    if (order.status === 'cancelled') return order;
+
+    for (const orderItem of order.items) {
+      const item = orderItem.item;
+      await Item.findByIdAndUpdate(
+        item._id,
+        {
+          $inc: {
+            stockQuantity: orderItem.quantity,
+            sold: -orderItem.quantity,
+          },
+        },
+        { session },
+      );
+    }
+
+    order.status = 'cancelled';
+    await order.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return order;
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+    throw err;
+  }
 };
