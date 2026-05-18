@@ -60,7 +60,7 @@ const notifyAboutExpiringItems = async () => {
     }
 
     if (expiryToday.length) {
-      await addExpiryReminderToCalendar(expiryToday, admin.email);
+      await addExpiryReminderToCalendar(expiryToday, admin.email, 'today');
       await email.send('expiryNotification', 'Items expiring today', {
         items: expiryToday,
       });
@@ -175,11 +175,12 @@ const uploadToDrive = async (csvContent, userEmail) => {
 
 const { getCalendarClient } = require('../controllers/googleController');
 
-const addExpiryReminderToCalendar = async (items, userEmail) => {
+const addExpiryReminderToCalendar = async (items, userEmail, type) => {
   const calendar = await getCalendarClient(userEmail);
 
   for (const item of items) {
-    const summary = `Use by ${dayjs(item.expiryDate).format('DD/MM')}: ${
+    const label = type === 'today' ? 'TODAY' : 'IN 5 DAYS'; 
+    const summary = `${label} - Use by ${dayjs(item.expiryDate).format('DD/MM')}: ${
       item.stockQuantity
     } ${item.name}`;
     const eventDate = dayjs(item.expiryDate).startOf('day');
