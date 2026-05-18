@@ -24,7 +24,7 @@ router.get('/dashboard-stats', getDashboardStats);
 
 router.get('/best-sellers', getBestSeller);
 
-router.get('/', restrictTo('super_admin', 'manager', 'waiter'), getAllItems);
+router.get('/', restrictTo('super_admin', 'manager', 'waiter', 'cashier'), getAllItems);
 
 router.get('/discounted', getDiscountItems);
 
