@@ -6,9 +6,24 @@ const handleCastErrorDB = (err) => {
 };
 
 const handleDuplicateFieldsDB = (err) => {
-  const value = err.errmsg.match(/(["'])(\\?.)*?\1/)[0];
-  const message = `Duplicate field value: ${value}. Please use another value!`;
-  return new AppError(message, 400);
+  if (err.keyValue && Object.keys(err.keyValue).length > 0) {
+    const field = Object.keys(err.keyValue)[0];
+    const value = err.keyValue[field];
+    const message = `Duplicate field value: ${value}. Please use another ${field}!`;
+    return new AppError(message, 400);
+  }
+
+  // Legacy MongoDB driver (pre-6)
+  const legacyMatch = err.errmsg?.match(/(["'])(\\?.)*?\1/);
+  if (legacyMatch) {
+    const message = `Duplicate field value: ${legacyMatch[0]}. Please use another value!`;
+    return new AppError(message, 400);
+  }
+
+  return new AppError(
+    err.message || 'Duplicate field value. Please use another value!',
+    400
+  );
 };
 
 const handleValidationErrorDB = (err) => {
@@ -56,8 +71,7 @@ const globalHandleMiddleware = (err, req, res, next) => {
   if (process.env.NODE_ENV === 'development') {
     sendErrorDev(err, res);
   } else if (process.env.NODE_ENV === 'production') {
-    let error = { ...err };
-    error.message = err.message;
+    let error = err;
 
     if (error.name === 'CastError') error = handleCastErrorDB(error);
     if (error.code === 11000) error = handleDuplicateFieldsDB(error);

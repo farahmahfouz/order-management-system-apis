@@ -68,7 +68,13 @@ userSchema.methods.createEmailActivationToken = function () {
 };
 
 userSchema.methods.createPasswordResetToken = function () {
-  return this._createHashedToken('passwordReset');
+  const rawToken = crypto.randomBytes(32).toString('hex');
+  this.passwordResetToken = crypto
+    .createHash('sha256')
+    .update(rawToken)
+    .digest('hex');
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+  return rawToken;
 };
 
 userSchema.methods.comparePassword = async function (

@@ -1,6 +1,4 @@
 const { Parser } = require('json2csv');
-const fs = require('fs');
-const path = require('path');
 
 const generateCSV = (orders, fileName = 'daily-report.csv') => {
   const formattedData = [];

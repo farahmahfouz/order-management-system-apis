@@ -9,12 +9,15 @@ const { getDriveClient } = require('../controllers/googleController');
 const { Readable } = require('stream');
 
 cron.schedule('0 0 * * *', async () => {
-  console.log('🔁 Running cron jobs every hour...');
-
+  console.log('🌙 Running daily cron jobs...');
   await notifyAboutExpiringItems();
-  await expirePendingOrders();
   await applyAutoDiscount();
   await generateDailyReport();
+});
+
+cron.schedule('0 * * * *', async () => {
+  console.log('⏰ Running hourly cron jobs...');
+  await expirePendingOrders();
 });
 
 const notifyAboutExpiringItems = async () => {

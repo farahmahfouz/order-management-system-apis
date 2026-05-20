@@ -1,5 +1,6 @@
 const { google } = require('googleapis');
 const GoogleToken = require('../models/googleTokenModel');
+const catchAsync = require('../utils/catchAsync');
 require('dotenv').config();
 
 const oauth2Client = new google.auth.OAuth2(
@@ -100,3 +101,11 @@ exports.getCalendarClient = async (userEmail) => {
   const auth = await getOAuth2Client(userEmail);
   return google.calendar({ version: 'v3', auth });
 };
+
+exports.googleStats = catchAsync(async (req, res) => {
+  const token = await GoogleToken.findOne({ userEmail: req.user.email });
+  res.status(200).json({
+    status: 'success',
+    data: { connected: !!token },
+  });
+});

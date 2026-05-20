@@ -20,7 +20,12 @@ const googleRoutes = require('./routes/googleRoute');
 const app = express();
 
 // 🔒 Security Headers
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+  })
+);
 
 const allowedOrigins = [
   'http://localhost:5173',
@@ -66,7 +71,7 @@ app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
 
 // 🛣️ Routes
-app.use('/', googleRoutes);
+app.use('/api/v1', googleRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/items', itemRoutes);
 app.use('/api/v1/orders', orderRoutes);

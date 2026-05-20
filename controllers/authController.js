@@ -1,22 +1,21 @@
 const catchAsync = require('../utils/catchAsync');
 const Email = require('../utils/email');
 const authService = require('../services/authService');
-const { signAccessToken , signRefreshToken} = require('../utils/jwt');
+const { signAccessToken } = require('../utils/jwt');
 const User = require('../models/userModel');
 const AppError = require('../utils/appError');
 
 const createSendToken = (user, statusCode, res) => {
   const token = signAccessToken(user._id);
-  const refreshToken = signRefreshToken(user._id);
   const cookieOptions = {
-    expires: new Date(Date.now() + 15 * 60 * 1000),
+    expires:  new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
     httpOnly: true,
     sameSite: 'Lax',
   };
 
   if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
 
-  res.cookie('refreshToken', refreshToken, cookieOptions);
+  res.cookie('jwt', token, cookieOptions);
   user.password = undefined;
 
   res.status(statusCode).json({
@@ -73,9 +72,7 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   const user = await authService.loginUser({ email });
-  console.log(user);
-  console.log(password);
-  console.log(user.password);
+
   if (!user || !(await user.comparePassword(password, user.password))) {
     return next(new AppError('Incorrect email or password', 401));
   }
@@ -97,9 +94,11 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
     return next(new AppError('There is no user with this email address', 404));
 
   try {
-    const resetUrl = `${req.protocol}://${req.get(
-      'host',
-    )}/api/v1/users/reset-password/${resetToken}`;
+    // const resetUrl = `${req.protocol}://${req.get(
+    //   'host',
+    // )}/api/v1/users/reset-password/${resetToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+ 
     await new Email(user, resetUrl).sendPasswordReset();
 
     res.status(200).json({

@@ -25,7 +25,10 @@ exports.activateUserAccount = async (token) => {
 
   const user = await User.findOne({
     activationToken: hashedToken,
+    activationTokenExpire: { $gt: Date.now() },
   });
+
+  if (!user) return null;
 
   user.isVerified = true;
   user.activationToken = undefined;
@@ -37,6 +40,7 @@ exports.activateUserAccount = async (token) => {
 
 exports.generateResetTokenAndSend = async (email) => {
   const user = await User.findOne({ email });
+  if (!user) return { user: null, resetToken: null };
 
   const resetToken = user.createPasswordResetToken();
   await user.save({ validateBeforeSave: false });
@@ -44,7 +48,7 @@ exports.generateResetTokenAndSend = async (email) => {
   return { user, resetToken };
 };
 
-exports.resetUserPassword = async (token, newPassword) => {
+exports.resetUserPassword = async (token, password) => {
   const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
   const user = await User.findOne({
@@ -52,11 +56,9 @@ exports.resetUserPassword = async (token, newPassword) => {
     passwordResetExpires: { $gt: Date.now() },
   });
 
-  if (!user) {
-    return null; 
-  }
+  if (!user) return null;
 
-  user.password = newPassword;
+  user.password = password;
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;
   await user.save();

@@ -21,35 +21,18 @@ const upload = multer({ dest: 'uploads/' });
 router.use(auth);
 
 router.get('/dashboard-stats', getDashboardStats);
-
 router.get('/best-sellers', getBestSeller);
+router.get('/discounted', getDiscountItems);
+router.get('/export', restrictTo('super_admin', 'manager'), exportItems); 
 
 router.get('/', restrictTo('super_admin', 'manager', 'waiter', 'cashier'), getAllItems);
-
-router.get('/discounted', getDiscountItems);
+router.get('/:id', restrictTo('super_admin', 'manager', 'waiter', 'cashier'), getOneItem);
 
 router.use(restrictTo('super_admin', 'manager'));
 
 router.post('/import', upload.single('file'), importItems);
-
-router.get('/export', exportItems);
-
-router.post(
-  '/',
-  uploadImages([{ name: 'image', count: 1 }]),
-  handleImages('image'),
-  createItem
-);
-
-router.get('/:id', getOneItem);
-
-router.patch(
-  '/:id',
-  uploadImages([{ name: 'image', count: 1 }]),
-  handleImages('image'),
-  updateItem
-);
-
+router.post('/', uploadImages([{ name: 'image', count: 1 }]), handleImages('image'), createItem);
+router.patch('/:id', uploadImages([{ name: 'image', count: 1 }]), handleImages('image'), updateItem);
 router.delete('/:id', deleteItem);
 
 module.exports = router;

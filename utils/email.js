@@ -12,24 +12,20 @@ module.exports = class Email {
 
   newTransport() {
     if (process.env.NODE_ENV === 'production') {
+      // Send Grid
       return nodemailer.createTransport({
-        host: 'smtp.sendgrid.net',
-        port: 587,
-        secure: false,
+        // service: 'SendGrid',
+        host: process.env.EMAIL_HOST,
+        port: Number(process.env.EMAIL_PORT),
         auth: {
-          user: 'apikey',
-          pass: process.env.SENDGRID_API_KEY,
+          user: process.env.EMAIL_USERNAME,
+          pass: process.env.EMAIL_PASSWORD,
         },
-        pool: true,
-        maxConnections: 1,
-        rateDelta: 20000,
-        rateLimit: 5,
       });
     }
-
     return nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
-      port: process.env.EMAIL_PORT,
+      port: Number(process.env.EMAIL_PORT),
       secure: false,
       auth: {
         user: process.env.EMAIL_USERNAME,
@@ -47,7 +43,7 @@ module.exports = class Email {
           url: this.url,
           subject,
           ...data,
-        }
+        },
       );
 
       const mailOptions = {
