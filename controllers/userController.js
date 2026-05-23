@@ -1,6 +1,7 @@
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const userService = require('../services/userService');
+const User = require('../models/userModel');
 
 const filterObj = (obj, ...allowedField) => {
   let newObj = {};
@@ -17,13 +18,15 @@ exports.getOneUser = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllUsers = catchAsync(async (req, res, next) => {
-  const users = await userService.getAllUsers(req.query.role);
+  const users = await userService.getAllUsers(req.query);
+  
   if (!users || users.length === 0) {
-    next(new AppError('No users found', 404));
+    return next(new AppError('No users found', 404));
   }
+  const usersCount = await User.countDocuments();
   res.status(200).json({
     status: 'success',
-    results: users.length,
+    allCounts: usersCount,
     data: { users },
   });
 });

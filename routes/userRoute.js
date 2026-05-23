@@ -32,7 +32,7 @@ router.post(
   auth,
   restrictTo('super_admin', 'manager'),
   validate(registerSchema),
-  register
+  register,
 );
 
 router.use(auth);
@@ -43,12 +43,12 @@ router.patch('/updateMyPassword', updatePassword);
 
 router.use(restrictTo('super_admin', 'manager'));
 
-router.get('/', getAllUsers);
+router.get('/', auth, restrictTo('super_admin', 'manager'), getAllUsers);
 router.patch(
   '/:id',
   uploadImages([{ name: 'image', count: 1 }]),
   handleImages('image'),
-  updateUser
+  updateUser,
 );
 router.delete('/:id', deleteUser);
 

@@ -30,6 +30,7 @@ exports.createOrderService = async ({
 
       item.stockQuantity -= orderItem.quantity;
       item.sold = (item.sold || 0) + orderItem.quantity;
+      if (item.stockQuantity <= 0) item.isAvailable = false;
       await item.save({ session });
 
       const finalPrice = item.discountPrice ?? item.price;

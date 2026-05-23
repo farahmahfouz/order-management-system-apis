@@ -1,12 +1,20 @@
 const User = require('../models/userModel');
+const APIFeatures = require('../utils/apiFeatures');
 
 exports.getUserById = async (id) => {
   return await User.findById(id).select('+isVerified');
 };
 
-exports.getAllUsers = async (role) => {
-  const filter = role ? { role } : {};
-  return await User.find(filter);
+exports.getAllUsers = async (queryString) => {
+  const features = new APIFeatures(User.find(), queryString)
+      .filter()
+      .sort()
+      .limitFields()
+      .pagination()
+      .search();
+
+  const users = await features.query;
+  return users
 };
 
 exports.updateUser = async (id, data) => {

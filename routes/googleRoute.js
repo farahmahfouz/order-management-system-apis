@@ -7,7 +7,7 @@ router.get('/auth/google', googleAuth);
 router.get('/oauth2callback', googleCallback);
 router.get(
   '/google/status',
-
+  auth,
   restrictTo('super_admin', 'manager'),
   googleStats
 );
