@@ -11,27 +11,54 @@ exports.createOrderService = async ({
   cashierId,
 }) => {
   const session = await mongoose.startSession();
-  session.startTransaction();
 
   try {
+    session.startTransaction();
+
     let totalCost = 0;
     const orderItems = [];
 
-    for (const orderItem of items) {
-      const item = await Item.findById(orderItem.item).session(session);
-      if (!item) throw new AppError('Item not found', 404);
+    // 1. Fetch all items in ONE query (بدل loop queries)
+    const itemIds = items.map((i) => i.item);
 
-      if (
-        (item.expiryDate && item.expiryDate < new Date()) ||
-        item.stockQuantity < orderItem.quantity
-      ) {
-        throw new AppError('Item expired or insufficient stock', 400);
+    const dbItems = await Item.find({
+      _id: { $in: itemIds },
+    }).session(session);
+
+    // 2. Convert to Map for fast lookup
+    const itemMap = new Map(
+      dbItems.map((item) => [item._id.toString(), item])
+    );
+
+    // 3. Validate + process items
+    for (const orderItem of items) {
+      const item = itemMap.get(orderItem.item.toString());
+
+      if (!item) {
+        throw new AppError("Item not found", 404);
       }
 
+      // validation
+      const isExpired =
+        item.expiryDate && item.expiryDate < new Date();
+
+      const notEnoughStock =
+        item.stockQuantity < orderItem.quantity;
+
+      if (isExpired || notEnoughStock) {
+        throw new AppError(
+          "Item expired or insufficient stock",
+          400
+        );
+      }
+
+      // update in memory first
       item.stockQuantity -= orderItem.quantity;
       item.sold = (item.sold || 0) + orderItem.quantity;
-      if (item.stockQuantity <= 0) item.isAvailable = false;
-      await item.save({ session });
+
+      if (item.stockQuantity <= 0) {
+        item.isAvailable = false;
+      }
 
       const finalPrice = item.discountPrice ?? item.price;
 
@@ -44,6 +71,12 @@ exports.createOrderService = async ({
       });
     }
 
+    // 4. Save all items in parallel (more efficient)
+    await Promise.all(
+      dbItems.map((item) => item.save({ session }))
+    );
+
+    // 5. Create order
     const [order] = await Order.create(
       [
         {
@@ -54,16 +87,18 @@ exports.createOrderService = async ({
           totalCost,
         },
       ],
-      { session },
+      { session }
     );
 
+    // 6. Commit transaction ASAP (important)
     await session.commitTransaction();
     session.endSession();
 
+    // 7. Populate after commit (outside transaction = lighter)
     const populatedOrder = await Order.findById(order._id)
-      .populate('cashier', 'name')
-      .populate('waiter', 'name')
-      .populate('items.item', 'name price');
+      .populate("cashier", "name")
+      .populate("waiter", "name")
+      .populate("items.item", "name price");
 
     return populatedOrder;
   } catch (err) {
